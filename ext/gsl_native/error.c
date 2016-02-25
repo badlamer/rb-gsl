@@ -8,6 +8,7 @@
   This library is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY.
 */
+#include <signal.h>
 #include "include/rb_gsl.h"
 #include <gsl/gsl_errno.h>
 #include "include/rb_gsl_array.h"
@@ -31,6 +32,12 @@ void rb_gsl_error_handler(const char *reason, const char *file,
   rb_raise(pgsl_error[gsl_errno],
            "Ruby/GSL error code %d, %s (file %s, line %d), %s",
            gsl_errno, reason, file, line, emessage);
+}
+
+void rb_gsl_segfault_handler(int signal)
+{
+    rb_raise(rb_eSignal, "SIGSEGV");
+    exit(0);
 }
 
 static void rb_gsl_my_error_handler(const char *reason, const char *file,
@@ -190,4 +197,6 @@ void Init_gsl_error(VALUE module)
 
   define_module_functions(module);
   rb_gsl_define_exceptions(module);
+
+  signal(SIGSEGV, &rb_gsl_segfault_handler);
 }
